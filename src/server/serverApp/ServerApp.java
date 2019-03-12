@@ -64,6 +64,7 @@ public class ServerApp {
       }
       new Thread(messageHandler).start();
       new Thread(adminSystemMonitoring).start();
+      datasource.createTables();
       datasource.start();
       System.out.println("Server is running on port " + PORT);
       System.out.println("Type 'help' for command list");

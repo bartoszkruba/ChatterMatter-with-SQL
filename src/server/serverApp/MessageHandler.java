@@ -33,7 +33,6 @@ public class MessageHandler implements Runnable {
 
    @Override
    public void run() {
-      // TODO: 2019-02-14 change true to isrunning
       while (isRunning) {
          if (messages.size() > 0) {
             processMessages();
