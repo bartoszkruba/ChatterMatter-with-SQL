@@ -2,6 +2,7 @@ package server.serverApp;
 
 
 import models.*;
+import server.serverApp.controllers.DatasourceController;
 
 import javax.swing.*;
 import java.util.Arrays;
@@ -79,22 +80,23 @@ public class MessageHandler implements Runnable {
       if (m.TEXT_CONTENT != null && m.TYPE == MessageType.CHANNEL_MESSAGE || m.TYPE == MessageType.WHISPER_MESSAGE) {
          // Remove multiple whitespaces, replace bad words, fix the length to 200 chars
          m.TEXT_CONTENT = m.TEXT_CONTENT
-                 .replaceAll("^ +([^ ]+)|( ?) *([^ ]+)( ) *| *$","$1$2$3$4")
+                 .replaceAll("^ +([^ ]+)|( ?) *([^ ]+)( ) *| *$", "$1$2$3$4")
                  .replaceAll("(?i)((" + String.join("|", badWordList) + ")\\w*\\b)",
                          betterWordList[(int) (Math.random() * betterWordList.length)])
-                 .replaceFirst("^(.{0,200}).*$","$1");
+                 .replaceFirst("^(.{0,200}).*$", "$1");
       }
    }
 
 
    private boolean checkIfChannelIsValid(String channel) {
       return channel.matches("^[\\w]{3,10}$") &&
-              !channel.matches("(?i).*("+ String.join("|",badWordList) +").*");
+              !channel.matches("(?i).*(" + String.join("|", badWordList) + ").*");
    }
 
    private void sendToChannelFromUser(Message m) {
       if (m.TEXT_CONTENT != null && !m.TEXT_CONTENT.equals("") && !spamProtectorDetectsDanger(m)) {
          sendToChannel(m);
+         DatasourceController.getInstance().addMessageToSave(m);
       }
    }
 
@@ -120,23 +122,24 @@ public class MessageHandler implements Runnable {
       // Trim the string
       m.TEXT_CONTENT = m.TEXT_CONTENT.trim();
       if (!m.TEXT_CONTENT.equals(m.NICKNAME)) {
-          if (validUserNickName(m.TEXT_CONTENT)) {
-              // If the username is valid, change it on the server
-              User user = ActiveUserController.getInstance().getUser(m.SENDER);
-              String oldUsername = user.getNickName();
-              user.setNickName(m.TEXT_CONTENT);
+         if (validUserNickName(m.TEXT_CONTENT)) {
+            // If the username is valid, change it on the server
+            User user = ActiveUserController.getInstance().getUser(m.SENDER);
+            String oldUsername = user.getNickName();
+            user.setNickName(m.TEXT_CONTENT);
 
-              // Send new username to all channels the user is active in
+            // Send new username to all channels the user is active in
 
-              adminSystemMonitoring.addToLog("User " + m.SENDER + "(" + oldUsername + ")" + " changed name to " + m.TEXT_CONTENT);
+            adminSystemMonitoring.addToLog("User " + m.SENDER + "(" + oldUsername + ")" + " changed name to " + m.TEXT_CONTENT);
 
-              sendOutNewUserNickName(user, m);
-          } else {
-              // If username was invalid, send an error to the user
-              sendErrorToUser(MessageType.ERROR, m.SENDER, m.CHANNEL, "The username you wanted is not valid. " +
-                      "\nNames should be 3-10 characters long containing only letters and/or numbers. " +
-                      "\nNo offensive words are allowed as names. ");
-          }
+            sendOutNewUserNickName(user, m);
+            DatasourceController.getInstance().addMessageToSave(m);
+         } else {
+            // If username was invalid, send an error to the user
+            sendErrorToUser(MessageType.ERROR, m.SENDER, m.CHANNEL, "The username you wanted is not valid. " +
+                    "\nNames should be 3-10 characters long containing only letters and/or numbers. " +
+                    "\nNo offensive words are allowed as names. ");
+         }
       }
    }
 
@@ -175,7 +178,7 @@ public class MessageHandler implements Runnable {
 
    private boolean validUserNickName(String newName) {
       return newName.matches("^[\\w]{3,10}$") &&
-              !newName.matches("(?i).*("+ String.join("|",badWordList) +").*");
+              !newName.matches("(?i).*(" + String.join("|", badWordList) + ").*");
    }
 
    private void addUserToChannel(Message m) {
@@ -187,17 +190,17 @@ public class MessageHandler implements Runnable {
          ActiveChannelController.getInstance().addUserToChannel(user, channel);
          Channel c = ActiveChannelController.getInstance().getChannel(m.CHANNEL);
          if (ActiveUserController.getInstance().getUserOutbox(user).add(c)) {
-            adminSystemMonitoring.addToLog("Adding User " + m.SENDER +"(" + user.getNickName() +")" + " to channel " + m.CHANNEL);
+            adminSystemMonitoring.addToLog("Adding User " + m.SENDER + "(" + user.getNickName() + ")" + " to channel " + m.CHANNEL);
          }
          sendToChannel(m);
       }
    }
 
    private void removeUserFromChannel(Message m) {
-         User user = ActiveUserController.getInstance().getUser(m.SENDER);
+      User user = ActiveUserController.getInstance().getUser(m.SENDER);
       if (m.SENDER != null && m.CHANNEL != null && !m.CHANNEL.equals("") && user != null) {
          this.sendToChannel(m);
-         adminSystemMonitoring.addToLog(ActiveChannelController.getInstance().removeUserFromChannel(m.SENDER, m.CHANNEL) ? "User " + m.SENDER  + "(" + user.getNickName() +")" +
+         adminSystemMonitoring.addToLog(ActiveChannelController.getInstance().removeUserFromChannel(m.SENDER, m.CHANNEL) ? "User " + m.SENDER + "(" + user.getNickName() + ")" +
                  " removed from channel " + m.CHANNEL : "");
       }
    }
@@ -236,15 +239,14 @@ public class MessageHandler implements Runnable {
       sendToUser(replay);
    }
 
-   private boolean spamProtectorDetectsDanger(Message message){
+   private boolean spamProtectorDetectsDanger(Message message) {
       User user = ActiveUserController.getInstance().getUser(message.SENDER);
       boolean isSpamming = user.userIsSpammingServer();
-      if(isSpamming){
+      if (isSpamming) {
          sendErrorToUser(MessageType.WARNING, message.SENDER, message.CHANNEL, "Stop spamming the chat...");
       }
       return isSpamming;
    }
-
 
 
 }

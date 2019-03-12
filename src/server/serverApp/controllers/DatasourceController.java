@@ -1,11 +1,11 @@
 package server.serverApp.controllers;
 
+import models.Message;
 import models.MessageType;
+import models.Sendable;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class DatasourceController extends Thread {
    private static DatasourceController ourInstance = new DatasourceController();
@@ -36,12 +36,44 @@ public class DatasourceController extends Thread {
            "PRIMARY KEY (" + COLUMN_MESSAGES_CHANNEL + ", " + COLUMN_MESSAGES_TIMESTAMP + ")" +
            ")";
 
+   private final String INSERT_INTO_MESSAGES = "INSERT INTO " + TABLE_MESSAGES + "(" +
+           COLUMN_MESSAGES_CHANNEL + ", " + COLUMN_MESSAGES_TEXT_CONTENT + ", " +
+           COLUMN_MESSAGES_NICKNAME + ", " + COLUMN_MESSAGES_TYPE + ") VALUES (?, ?, ?, ?)";
+
    private Connection conn;
+   private PreparedStatement insertIntoMessages;
 
    private boolean running;
+   private LinkedBlockingQueue<Message> messagesToSave;
 
-   private DatasourceController() {
+   public DatasourceController() {
+      messagesToSave = new LinkedBlockingQueue<>();
+   }
 
+   public boolean openConnection() {
+      try {
+         this.conn = DriverManager.getConnection(CONNECTION_STRING, USER, PASSWORD);
+         this.insertIntoMessages = conn.prepareStatement(INSERT_INTO_MESSAGES);
+         return true;
+      } catch (SQLException e) {
+         System.out.println("Couldn't open connection: " + e.getMessage());
+         return false;
+      }
+   }
+
+   public void closeConnection() {
+      try {
+
+         if (insertIntoMessages != null) {
+            insertIntoMessages.close();
+         }
+
+         if (conn != null) {
+            conn.close();
+         }
+      } catch (SQLException e) {
+         System.out.println("Couldn't close connection: " + e.getMessage());
+      }
    }
 
    public boolean createTables() {
@@ -60,23 +92,40 @@ public class DatasourceController extends Thread {
       }
    }
 
-   public boolean openConnection() {
+   private boolean insertIntoMessages(String channel, String text_content, String nickname, MessageType messageType) {
       try {
-         this.conn = DriverManager.getConnection(CONNECTION_STRING, USER, PASSWORD);
+         insertIntoMessages.setString(1, channel);
+         insertIntoMessages.setString(2, text_content);
+         insertIntoMessages.setString(3, nickname);
+         insertIntoMessages.setString(4, messageType.toString());
+
+         insertIntoMessages.executeUpdate();
          return true;
       } catch (SQLException e) {
-         System.out.println("Couldn't open connection: " + e.getMessage());
+         System.out.println("Couldn't insert message: " + e.getMessage());
          return false;
       }
    }
 
-   public void closeConnection() {
-      try {
-         if (conn != null) {
-            conn.close();
+   public void addMessageToSave(Message message) {
+      this.messagesToSave.add(message);
+   }
+
+   private void saveMessage(Message message) {
+      MessageType type = message.TYPE;
+      String channel = message.CHANNEL;
+      String text_content = message.TEXT_CONTENT;
+      String nickname = message.NICKNAME;
+      if ((type == MessageType.CHANNEL_MESSAGE || type == MessageType.NICKNAME_CHANGE) &&
+              channel != null &&
+              text_content != null &&
+              nickname != null) {
+         boolean success = insertIntoMessages(channel, text_content, nickname, type);
+         while (!success && running) {
+            success = insertIntoMessages(channel, text_content, nickname, type);
          }
-      } catch (SQLException e) {
-         System.out.println("Couldn't close connection: " + e.getMessage());
+      } else {
+         System.out.println("Couldn't save message: Some fields are empty or contain incorrect data");
       }
    }
 
@@ -84,6 +133,9 @@ public class DatasourceController extends Thread {
    public void run() {
       running = true;
       while (running) {
+         if (!messagesToSave.isEmpty()) {
+            saveMessage(messagesToSave.remove());
+         }
          try {
             Thread.sleep(10);
          } catch (InterruptedException e) {
