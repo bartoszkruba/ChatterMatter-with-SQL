@@ -1,0 +1,43 @@
+
+.root {
+    -fx-font-family: "Segoe UI", Arial, Calibri;
+    -fx-base: rgb(220,220,220);
+    -fx-background: rgb(240,240,240);
+    -fx-font-size: 14;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+#channel_message{
+    -fx-text-fill: rgb(0, 0, 0);
+}
+
+#join_message{
+    -fx-text-fill: rgb(0,200,0);
+}
+
+#leave_channel{
+    -fx-text-fill: rgb(0, 0, 128);
+
+}
+#warning, #error{
+    -fx-text-fill: rgb(255,20,60);
+}
+
+#disconnect_message{
+    -fx-text-fill: rgb(47,79,79);
+}
+
+#whisper_message{
+    -fx-text-fill: rgb(153,50,204);
+
+}
+
+#nickname_message{
+    -fx-text-fill: rgb(255,140,0);
+}
+
+#chat_box{
+    -fx-base: rgb(255, 255, 255);
+    -fx-background: rgb(250, 250, 250);
+}
