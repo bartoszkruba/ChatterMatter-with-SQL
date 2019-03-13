@@ -114,7 +114,7 @@ public class MessageInboxHandler {
    }
 
    private void changeNickname(Message message) {
-      if (message.SENDER.equals(Client.getInstance().getThisUser().getID())) {
+      if (message.SENDER != null && message.SENDER.equals(Client.getInstance().getThisUser().getID())) {
          Client.getInstance().getThisUser().setNickName(message.TEXT_CONTENT);
          Client.getInstance().changeTitle();
       }

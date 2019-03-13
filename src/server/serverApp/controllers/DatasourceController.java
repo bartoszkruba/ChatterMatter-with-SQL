@@ -2,6 +2,7 @@ package server.serverApp.controllers;
 
 import models.Message;
 import models.MessageType;
+import models.annotations.ObjectMapper;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -152,29 +153,13 @@ public class DatasourceController extends Thread {
          statement.setString(1, channel);
          ResultSet results = statement.executeQuery();
 
-         while (results.next()) {
-            Message message = new Message();
-            LocalDateTime timestamp = results.getTimestamp(2).toLocalDateTime();
-            String text_content = results.getString(3);
-            String nickname = results.getString(4);
-            String type = results.getString(5);
-            try {
-               message.setTYPE(type)
-                       .setTIMESTAMP(timestamp)
-                       .setTEXT_CONTENT(text_content)
-                       .setNICKNAME(nickname)
-                       .setCHANNEL(channel);
+         ObjectMapper<Message> objectMapper = new ObjectMapper<>(Message.class);
 
-               messages.add(message);
-            } catch (Exception e) {
-               e.printStackTrace();
-            }
-         }
+         messages = objectMapper.map(results);
 
       } catch (SQLException e) {
          System.out.println("Couldn't query message: " + e.getMessage());
       }
-
       return messages;
    }
 

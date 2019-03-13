@@ -1,5 +1,7 @@
 package models;
 
+import models.annotations.Column;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -10,10 +12,16 @@ public class Message implements Serializable, Sendable {
 
    public UUID SENDER;
    public UUID RECEIVER;
+
+   @Column("nickname")
    public String NICKNAME;
+   @Column("message_type")
    public MessageType TYPE;
+   @Column("text_content")
    public String TEXT_CONTENT;
+   @Column("channel")
    public String CHANNEL;
+   @Column("message_timestamp")
    public String TIMESTAMP;
 
    public Message() {
