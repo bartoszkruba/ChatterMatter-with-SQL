@@ -184,9 +184,9 @@ public class Client {
       this.kill();
       this.userData = new UserData();
       userData.setUsername(thisUser.getNickName());
-      this.channelMessages.entrySet().forEach(e -> {
-         userData.addChannel(e.getKey(), e.getValue());
-      });
+//      this.channelMessages.entrySet().forEach(e -> {
+//         userData.addChannel(e.getKey(), e.getValue());
+//      });
 
       ChatWindowController controller = (ChatWindowController) ClientMain.primaryStage.getUserData();
 
