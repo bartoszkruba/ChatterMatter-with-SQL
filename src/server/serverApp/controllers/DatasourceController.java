@@ -2,10 +2,15 @@ package server.serverApp.controllers;
 
 import models.Message;
 import models.MessageType;
-import models.Sendable;
 
 import java.sql.*;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.stream.Stream;
 
 public class DatasourceController extends Thread {
    private static DatasourceController ourInstance = new DatasourceController();
@@ -40,8 +45,12 @@ public class DatasourceController extends Thread {
            COLUMN_MESSAGES_CHANNEL + ", " + COLUMN_MESSAGES_TEXT_CONTENT + ", " +
            COLUMN_MESSAGES_NICKNAME + ", " + COLUMN_MESSAGES_TYPE + ") VALUES (?, ?, ?, ?)";
 
+   private final String QUERY_MESSAGES_FROM_CHANNEL = "SELECT * FROM " + TABLE_MESSAGES +
+           " WHERE " + COLUMN_MESSAGES_CHANNEL + " = ?";
+
    private Connection conn;
    private PreparedStatement insertIntoMessages;
+   private PreparedStatement queryAllMessagesFromChannel;
 
    private boolean running;
    private LinkedBlockingQueue<Message> messagesToSave;
@@ -54,6 +63,8 @@ public class DatasourceController extends Thread {
       try {
          this.conn = DriverManager.getConnection(CONNECTION_STRING, USER, PASSWORD);
          this.insertIntoMessages = conn.prepareStatement(INSERT_INTO_MESSAGES);
+         this.queryAllMessagesFromChannel = conn.prepareStatement(QUERY_MESSAGES_FROM_CHANNEL);
+
          return true;
       } catch (SQLException e) {
          System.out.println("Couldn't open connection: " + e.getMessage());
@@ -64,15 +75,20 @@ public class DatasourceController extends Thread {
    public void closeConnection() {
       try {
 
-         if (insertIntoMessages != null) {
-            insertIntoMessages.close();
-         }
+         closePreparedStatement(queryAllMessagesFromChannel);
+         closePreparedStatement(insertIntoMessages);
 
          if (conn != null) {
             conn.close();
          }
       } catch (SQLException e) {
          System.out.println("Couldn't close connection: " + e.getMessage());
+      }
+   }
+
+   private void closePreparedStatement(PreparedStatement statement) throws SQLException {
+      if (statement != null) {
+         statement.close();
       }
    }
 
@@ -127,6 +143,39 @@ public class DatasourceController extends Thread {
       } else {
          System.out.println("Couldn't save message: Some fields are empty or contain incorrect data");
       }
+   }
+
+   public List<Message> queryAllMessagesFromChannel(String channel) {
+      System.out.println("quering messages");
+      List<Message> messages = new ArrayList<>();
+      try (PreparedStatement statement = conn.prepareStatement(QUERY_MESSAGES_FROM_CHANNEL);) {
+         statement.setString(1, channel);
+         ResultSet results = statement.executeQuery();
+
+         while (results.next()) {
+            Message message = new Message();
+            LocalDateTime timestamp = results.getTimestamp(2).toLocalDateTime();
+            String text_content = results.getString(3);
+            String nickname = results.getString(4);
+            String type = results.getString(5);
+            try {
+               message.setTYPE(type)
+                       .setTIMESTAMP(timestamp)
+                       .setTEXT_CONTENT(text_content)
+                       .setNICKNAME(nickname)
+                       .setCHANNEL(channel);
+
+               messages.add(message);
+            } catch (Exception e) {
+               e.printStackTrace();
+            }
+         }
+
+      } catch (SQLException e) {
+         System.out.println("Couldn't query message: " + e.getMessage());
+      }
+
+      return messages;
    }
 
    @Override

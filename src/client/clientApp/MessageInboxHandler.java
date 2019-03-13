@@ -37,7 +37,9 @@ public class MessageInboxHandler {
       if (Client.getInstance().userIsIgnored(message.SENDER) &&
               (message.TYPE == MessageType.CHANNEL_MESSAGE || message.TYPE == MessageType.WHISPER_MESSAGE))
          return; // Don't proceed with ignored users
-      message.TIMESTAMP = getTimeStamp();
+      if (message.TIMESTAMP == null) {
+         message.TIMESTAMP = getTimeStamp();
+      }
       Platform.runLater(() -> {
          switch (message.TYPE) {
             case WHISPER_MESSAGE:
@@ -161,7 +163,7 @@ public class MessageInboxHandler {
       }
    }
 
-   public void createNewChatWindowController(){
+   public void createNewChatWindowController() {
       chatWindowController = (ChatWindowController) ClientMain.primaryStage.getUserData();
    }
 }

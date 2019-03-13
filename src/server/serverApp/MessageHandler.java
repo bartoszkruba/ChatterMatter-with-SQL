@@ -1,11 +1,13 @@
 package server.serverApp;
 
 
+import com.mysql.cj.Messages;
 import models.*;
 import server.serverApp.controllers.DatasourceController;
 
 import javax.swing.*;
 import java.util.Arrays;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -191,9 +193,20 @@ public class MessageHandler implements Runnable {
          Channel c = ActiveChannelController.getInstance().getChannel(m.CHANNEL);
          if (ActiveUserController.getInstance().getUserOutbox(user).add(c)) {
             adminSystemMonitoring.addToLog("Adding User " + m.SENDER + "(" + user.getNickName() + ")" + " to channel " + m.CHANNEL);
+            sendChannelHistory(user, m.CHANNEL);
          }
          sendToChannel(m);
       }
+   }
+
+   private void sendChannelHistory(User user, String channel) {
+      new Thread(() -> {
+         List<Message> messages = DatasourceController.getInstance().queryAllMessagesFromChannel(channel);
+         messages.forEach(m -> {
+            m.setRECEIVER(user.getID());
+            sendToUser(m);
+         });
+      }).start();
    }
 
    private void removeUserFromChannel(Message m) {
