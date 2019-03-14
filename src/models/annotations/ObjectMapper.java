@@ -43,10 +43,7 @@ public class ObjectMapper<T> {
             String column = e.getKey();
             Field field = fields.get(column);
             if (field != null) {
-               if (clazz.getSimpleName().equals("Message") && field.getName().equals("TIMESTAMP")) {
-                  Method method = clazz.getMethod("setTIMESTAMP", LocalDateTime.class);
-                  method.invoke(mappedObject, ((Timestamp) e.getValue()).toLocalDateTime());
-               } else if (clazz.getSimpleName().equals("Message") && field.getName().equals("TYPE")) {
+               if (clazz.getSimpleName().equals("Message") && field.getName().equals("TYPE")) {
                   Method method = clazz.getMethod("setTYPE", String.class);
                   method.invoke(mappedObject, e.getValue());
                } else {

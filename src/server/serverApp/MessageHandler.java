@@ -183,15 +183,20 @@ public class MessageHandler implements Runnable {
    private void addUserToChannel(Message m) {
       String channel = m.CHANNEL;
       User user = ActiveUserController.getInstance().getUser(m.SENDER);
+
       boolean userIsInChannel = ActiveChannelController.getInstance().userIsInChannel(channel, user);
+
       if (channel != null && user != null && !userIsInChannel && checkIfChannelIsValid(m.CHANNEL)) {
+
          m.NICKNAME = user.getNickName();
          ActiveChannelController.getInstance().addUserToChannel(user, channel);
          Channel c = ActiveChannelController.getInstance().getChannel(m.CHANNEL);
+
          if (ActiveUserController.getInstance().getUserOutbox(user).add(c)) {
             adminSystemMonitoring.addToLog("Adding User " + m.SENDER + "(" + user.getNickName() + ")" + " to channel " + m.CHANNEL);
             sendChannelHistory(user, m.CHANNEL);
          }
+
          sendToChannel(m);
       }
    }

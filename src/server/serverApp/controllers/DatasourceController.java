@@ -26,6 +26,7 @@ public class DatasourceController extends Thread {
    private final String PASSWORD = "password";
 
    private final String TABLE_MESSAGES = "messages";
+   private final String COLUMN_MESSAGES_ID = "id";
    private final String COLUMN_MESSAGES_CHANNEL = "channel";
    private final String COLUMN_MESSAGES_TIMESTAMP = "message_timestamp";
    private final String COLUMN_MESSAGES_TEXT_CONTENT = "text_content";
@@ -34,19 +35,25 @@ public class DatasourceController extends Thread {
 
    private final String CREATE_TABLE_MESSAGES = "CREATE TABLE IF NOT EXISTS " + TABLE_MESSAGES +
            "(" +
+           COLUMN_MESSAGES_ID + " INT UNSIGNED AUTO_INCREMENT NOT NULL, " +
            COLUMN_MESSAGES_CHANNEL + " VARCHAR(200) NOT NULL, " +
            COLUMN_MESSAGES_TIMESTAMP + " TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
            COLUMN_MESSAGES_TEXT_CONTENT + " VARCHAR(255) NOT NULL, " +
            COLUMN_MESSAGES_NICKNAME + " VARCHAR(50) NOT NULL, " +
            COLUMN_MESSAGES_TYPE + " ENUM('" + MessageType.CHANNEL_MESSAGE + "', '" + MessageType.NICKNAME_CHANGE + "') NOT NULL, " +
-           "PRIMARY KEY (" + COLUMN_MESSAGES_CHANNEL + ", " + COLUMN_MESSAGES_TIMESTAMP + ")" +
+           "PRIMARY KEY (" + COLUMN_MESSAGES_ID + ")" +
            ")";
 
    private final String INSERT_INTO_MESSAGES = "INSERT INTO " + TABLE_MESSAGES + "(" +
            COLUMN_MESSAGES_CHANNEL + ", " + COLUMN_MESSAGES_TEXT_CONTENT + ", " +
            COLUMN_MESSAGES_NICKNAME + ", " + COLUMN_MESSAGES_TYPE + ") VALUES (?, ?, ?, ?)";
 
-   private final String QUERY_MESSAGES_FROM_CHANNEL = "SELECT * FROM " + TABLE_MESSAGES +
+   private final String QUERY_MESSAGES_FROM_CHANNEL = "SELECT " +
+           COLUMN_MESSAGES_CHANNEL + ", " + "DATE_FORMAT(" + COLUMN_MESSAGES_TIMESTAMP + ", '[%H:%i:%s] ') AS " + COLUMN_MESSAGES_TIMESTAMP + ", " +
+           COLUMN_MESSAGES_TEXT_CONTENT + ", " +
+           COLUMN_MESSAGES_NICKNAME + ", " +
+           COLUMN_MESSAGES_TYPE +
+           " FROM " + TABLE_MESSAGES +
            " WHERE " + COLUMN_MESSAGES_CHANNEL + " = ?";
 
    private Connection conn;
