@@ -1,7 +1,7 @@
 package client.clientApp;
 
 import javafx.fxml.FXML;
-import models.SerializableLabel;
+import javafx.scene.control.Label;
 import models.Message;
 
 public class MessageCreator {
@@ -24,18 +24,17 @@ public class MessageCreator {
         };
     }
 
-    private SerializableLabel labelCreator(String text, String id) {
-        SerializableLabel label = new SerializableLabel();
+    private Label labelCreator(String text, String id) {
+        Label label = new Label();
         label.setText(text);
         label.setId(id);
         label.setWrapText(true);
-        label.save();
         return label;
     }
 
     @FXML
-    public SerializableLabel createLabel(Message message) {
-        SerializableLabel label = null;
+    public Label createLabel(Message message) {
+        Label label = null;
         switch (message.TYPE) {
             case DISCONNECT:
                 label = labelCreator(message.TIMESTAMP + message.NICKNAME + " has disconnected.", "disconnect_message");

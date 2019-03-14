@@ -3,6 +3,7 @@ package client.clientApp;
 import client.clientApp.controllers.ChatWindowController;
 import client.ClientMain;
 import javafx.application.Platform;
+import javafx.scene.control.Label;
 import javafx.scene.media.AudioClip;
 import javafx.scene.media.Media;
 import models.*;
@@ -78,16 +79,20 @@ public class MessageInboxHandler {
 
 
    private void printLabelOnClient(Message message) {
-      SerializableLabel label = messageCreator.createLabel(message);
+      Label label = messageCreator.createLabel(message);
       if (message.CHANNEL != null && message.CHANNEL.equals(Client.getInstance().getCurrentChannel())) {
          chatWindowController.getChatBox().getChildren().add(label);
       }
    }
 
    private void addMessageToList(Message message) {
-      SerializableLabel label = messageCreator.createLabel(message);
+      Label label = messageCreator.createLabel(message);
       if (message.CHANNEL != null) {
-         Client.getInstance().getChannelMessages().get(message.CHANNEL).add(label);
+
+         ArrayList<Label> channel = Client.getInstance().getChannelMessages().get(message.CHANNEL);
+         if (channel != null) {
+            channel.add(label);
+         }
          if (!message.CHANNEL.equals(Client.getInstance().getCurrentChannel()) && (message.TYPE.equals(MessageType.WHISPER_MESSAGE) || (message.TYPE.equals(MessageType.CHANNEL_MESSAGE)))) {
             Client.getInstance().getUncheckedChannels().add(message.CHANNEL);
             chatWindowController.getChannel_list_view().refresh();
@@ -97,7 +102,7 @@ public class MessageInboxHandler {
    }
 
    public void addChannel(Channel channel) {
-      ArrayList<SerializableLabel> list = Client.getInstance().getChannelMessages().getOrDefault(channel.getName(), new ArrayList<>());
+      ArrayList<Label> list = Client.getInstance().getChannelMessages().getOrDefault(channel.getName(), new ArrayList<>());
       Client.getInstance().getChannelMessages().put(channel.getName(), list);
       Client.getInstance().setCurrentChannel(channel.getName());
       Platform.runLater(() -> {

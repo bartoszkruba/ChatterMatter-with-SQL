@@ -6,6 +6,7 @@ import client.clientApp.network.Receiver;
 import client.clientApp.network.Sender;
 import client.clientApp.util.FileManager;
 import javafx.application.Platform;
+import javafx.scene.control.Label;
 import models.*;
 
 import java.io.IOException;
@@ -30,7 +31,7 @@ public class Client {
    public Sender sender;
    public Receiver reciever;
    public ConcurrentSkipListMap<String, ConcurrentSkipListSet<User>> channelList;
-   private ConcurrentHashMap<String, ArrayList<SerializableLabel>> channelMessages;
+   private ConcurrentHashMap<String, ArrayList<Label>> channelMessages;
    private String currentChannel;
    private User thisUser;
    private UserData userData;
@@ -137,11 +138,11 @@ public class Client {
       return userData;
    }
 
-   public ConcurrentHashMap<String, ArrayList<SerializableLabel>> getChannelMessages() {
+   public ConcurrentHashMap<String, ArrayList<Label>> getChannelMessages() {
       return channelMessages;
    }
 
-   public void setChannelMessages(ConcurrentHashMap<String, ArrayList<SerializableLabel>> channelMessages) {
+   public void setChannelMessages(ConcurrentHashMap<String, ArrayList<Label>> channelMessages) {
       this.channelMessages = channelMessages;
    }
 
@@ -184,9 +185,6 @@ public class Client {
       this.kill();
       this.userData = new UserData();
       userData.setUsername(thisUser.getNickName());
-//      this.channelMessages.entrySet().forEach(e -> {
-//         userData.addChannel(e.getKey(), e.getValue());
-//      });
 
       ChatWindowController controller = (ChatWindowController) ClientMain.primaryStage.getUserData();
 

@@ -6,7 +6,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class UserData implements Serializable {
 
-   private ConcurrentHashMap<String, ArrayList<SerializableLabel>> channelMessages;
    private String username;
    private HashSet<UUID> ignoreList;
    private HashSet<String> joinedChannels;
@@ -14,15 +13,13 @@ public class UserData implements Serializable {
    private String IP;
 
    public UserData() {
-      this.channelMessages = new ConcurrentHashMap<>();
       this.username = "Unknown";
       this.ignoreList = new HashSet<>();
       this.joinedChannels = new HashSet<>();
       darkMode = false;
    }
 
-   public UserData(ConcurrentHashMap<String, ArrayList<SerializableLabel>> channelMessages, String username, HashSet<UUID> ignoreList) {
-      this.channelMessages = channelMessages;
+   public UserData(String username, HashSet<UUID> ignoreList) {
       this.username = username;
       this.ignoreList = ignoreList;
       this.joinedChannels = new HashSet<>();
@@ -31,11 +28,6 @@ public class UserData implements Serializable {
 
    public UserData setUsername(String username) {
       this.username = username;
-      return this;
-   }
-
-   public UserData addChannel(String channel, ArrayList<SerializableLabel> messages) {
-      this.channelMessages.put(channel, messages);
       return this;
    }
 
@@ -48,10 +40,6 @@ public class UserData implements Serializable {
    public UserData addIgnores(Collection<UUID> ignoreIDs) {
       this.ignoreList.addAll(ignoreIDs);
       return this;
-   }
-
-   public ConcurrentHashMap<String, ArrayList<SerializableLabel>> getChannelMessages() {
-      return this.channelMessages;
    }
 
    public String getUsername() {
@@ -70,9 +58,6 @@ public class UserData implements Serializable {
       return joinedChannels;
    }
 
-   public void initialize() {
-      this.channelMessages.values().forEach(v -> v.forEach(SerializableLabel::initialize));
-   }
 
    public boolean isDarkMode() {
       return darkMode;

@@ -28,7 +28,6 @@ public class StartupWindowController {
 
    public void initialize() {
       data = Client.getInstance().getUserData();
-      data.initialize();
       nicknameTextField.setText(data.getUsername());
       serverAddressTextField.setText(data.getIP());
    }

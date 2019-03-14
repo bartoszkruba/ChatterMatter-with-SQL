@@ -59,18 +59,23 @@ public class UiLogic {
     }
 
     private void joinOldChannels() {
-        Client.getInstance().setChannelMessages(userdata.getChannelMessages());
-        if (userdata.getJoinedChannels().size() > 0) {
-            userdata.getJoinedChannels().forEach(c -> {
-                Message channelJoinMessage = new Message(MessageType.JOIN_CHANNEL);
-                channelJoinMessage.CHANNEL = c;
-                sender.sendToServer(channelJoinMessage);
-            });
-        } else {
-            Message joinGeneral = new Message(MessageType.JOIN_CHANNEL);
-            joinGeneral.CHANNEL = "General";
-            sender.sendToServer(joinGeneral);
-        }
+//        if (userdata.getJoinedChannels().size() > 0) {
+//            userdata.getJoinedChannels().forEach(c -> {
+//                Message channelJoinMessage = new Message(MessageType.JOIN_CHANNEL);
+//                channelJoinMessage.CHANNEL = c;
+//                sender.sendToServer(channelJoinMessage);
+//            });
+//        } else {
+//            Message joinGeneral = new Message(MessageType.JOIN_CHANNEL);
+//            joinGeneral.CHANNEL = "General";
+//            sender.sendToServer(joinGeneral);
+//        }
+
+        userdata.getJoinedChannels().forEach(c -> {
+            Message channelJoinMessage = new Message(MessageType.JOIN_CHANNEL);
+            channelJoinMessage.CHANNEL = c;
+            sender.sendToServer(channelJoinMessage);
+        });
     }
 
     public void logOut() throws IOException {
